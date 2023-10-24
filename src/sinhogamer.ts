@@ -57,8 +57,15 @@ export async function getAllPosts() {
     return results;
 }
 
-export async function getPostImage(postUrl: string) {
-    const response = await fetch(postUrl);
+export async function getPostImage(postName: string) {
+    const url = BASE_URL + `/search?q=${postName.replace(/\s/g, '+')}`;
+    const response = await fetch(url);
+    const htmlString = await response.text();
+    const $ = cheerio.load(htmlString);
+
+    const images = $('.imgThm').map((_, el) => el.attribs['src']).toArray();
+
+    return images.length > 0 ? images[0] : null;
 }
 
-export default { getFeed, getAllPosts }
+export default { getFeed, getAllPosts, getPostImage }

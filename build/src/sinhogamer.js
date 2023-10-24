@@ -35,7 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllPosts = exports.getFeed = void 0;
+exports.getPostImage = exports.getAllPosts = exports.getFeed = void 0;
 const cheerio = __importStar(require("cheerio"));
 const rss_parser_1 = __importDefault(require("rss-parser"));
 const BASE_URL = `https://sinhogamer.com`;
@@ -49,7 +49,6 @@ function getFeed(options) {
         return feed.items.map((post) => {
             let content = cheerio.load(post.content).text();
             content = content.replace('(adsbygoogle = window.adsbygoogle || []).push({});', '').replace(/\n{2,}/g, '\n');
-            //fs.writeFileSync(`cache/modsPages/${post.title?.split(' ').splice(0, 2).join('')}.txt`, content)
             const aboutMatch = content === null || content === void 0 ? void 0 : content.match(/.*?(?=CAR[AC]+TERÍSTICAS DO MOD)/gmsi);
             const featuresMatch = content === null || content === void 0 ? void 0 : content.match(/CAR[AC]+TERÍSTICAS DO MOD.*?(?=COMO INSTALAR)/gmsi);
             const stepsMatch = content === null || content === void 0 ? void 0 : content.match(/COMO INSTALAR.*(?=Todos os MODS)/gmsi);
@@ -82,4 +81,15 @@ function getAllPosts() {
     });
 }
 exports.getAllPosts = getAllPosts;
-exports.default = { getFeed, getAllPosts };
+function getPostImage(postName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const url = BASE_URL + `/search?q=${postName.replace(/\s/g, '+')}`;
+        const response = yield fetch(url);
+        const htmlString = yield response.text();
+        const $ = cheerio.load(htmlString);
+        const images = $('.imgThm').map((_, el) => el.attribs['src']).toArray();
+        return images.length > 0 ? images[0] : null;
+    });
+}
+exports.getPostImage = getPostImage;
+exports.default = { getFeed, getAllPosts, getPostImage };

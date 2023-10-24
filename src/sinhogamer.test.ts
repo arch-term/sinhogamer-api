@@ -21,6 +21,10 @@ describe("sinhogamer module", () => {
             })
         ]))
     })
+    it("Get image url from post", async function() {
+        expect(await sinhogamer.getPostImage('Exiled Kingdoms RPG Apk Mod (Dinheiro Infinito/Desbloqueado) v1.13.1210'))
+        .toBe('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiMR0I-4zp9ZVHMbhyWhvBKLPKWKdyPTdfflvgOmvyAFcIZa7tTKGISG_aWMA7OpERBEDuelA0YCuLP-_BB9q9qJ_GbDjJsVDCxhVHd6oX4bNbkJPuw89qHA4MkwYfzCq5SQ9a31pEBHAa8ZeVTOaA9ASaTVJupBF4lI2dvffhofDS7_9ovq-abkjWe2sAP/w200/Exiled-Kingdoms-RPG-Apk-Mod.png')
+    })
     it("Get all mods and save in file", async function () {
         let mods
         if (!fs.existsSync('cache/mods.json')) {
