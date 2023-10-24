@@ -13,24 +13,38 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sinhogamer_1 = __importDefault(require("./sinhogamer"));
+const fs_1 = __importDefault(require("fs"));
 describe("sinhogamer module", () => {
     it("Can return an array of length 5", () => __awaiter(void 0, void 0, void 0, function* () {
         const feed = yield sinhogamer_1.default.getFeed({ max_results: 5 });
-        expect(feed).not.toHaveLength(5);
+        expect(feed).toHaveLength(5);
     }));
     it("Can contain valid data in feed", () => __awaiter(void 0, void 0, void 0, function* () {
-        const feed = yield sinhogamer_1.default.getFeed({ max_results: 1, start_index: 18 });
-        expect(feed).toEqual(expect.arrayContaining([
-            expect.objectContaining({ title: String }),
-            expect.objectContaining({ link: String }),
-            expect.objectContaining({ publishDate: Date }),
+        const feed = yield sinhogamer_1.default.getFeed({ max_results: 5 });
+        expect(feed).toStrictEqual(expect.arrayContaining([
             expect.objectContaining({
-                content: expect.arrayContaining([
-                    expect.objectContaining({ about: String }),
-                    expect.objectContaining({ features: String }),
-                    expect.objectContaining({ steps: String }),
-                ])
-            }),
+                title: expect.any(String),
+                link: expect.any(String),
+                publishDate: expect.any(Date),
+                content: expect.objectContaining({
+                    about: expect.any(String),
+                    features: expect.any(String),
+                    steps: expect.any(String)
+                })
+            })
         ]));
     }));
+    it("Get all mods and save in file", function () {
+        return __awaiter(this, void 0, void 0, function* () {
+            let mods;
+            if (!fs_1.default.existsSync('cache/mods.json')) {
+                mods = yield sinhogamer_1.default.getAllPosts();
+                fs_1.default.writeFileSync('cache/mods.json', JSON.stringify(mods, null, '\t'));
+            }
+            else {
+                mods = JSON.parse(fs_1.default.readFileSync('cache/mods.json', 'utf8'));
+            }
+            expect(mods.length).toBeGreaterThan(2000);
+        });
+    }, 60000);
 });
