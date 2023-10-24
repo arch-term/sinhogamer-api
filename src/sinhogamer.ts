@@ -10,7 +10,38 @@ export interface Options {
     start_index?: number
 }
 
-export async function getFeed(options?: Options) {
+export interface Post {
+    title?: string,
+    link?: string,
+    publishDate?: Date,
+    content: {
+        about: string | null,
+        features: string | null,
+        steps: string | null
+    }
+}
+
+export async function comparePosts(last: Post[], current: Post[]) {
+    const newPosts = current.filter((post) => {
+        return !last.some((lastPost) => lastPost.link === post.link);
+    });
+
+    const deletedPosts = last.filter((post) => {
+        return !current.some((currentPost) => currentPost.link === post.link);
+    });
+
+    const updatedPosts = current.filter((post) => {
+        return last.some((lastPost) => lastPost.link === post.link && lastPost.publishDate !== post.publishDate);
+    });
+
+    return {
+        newPosts,
+        deletedPosts,
+        updatedPosts
+    }
+}
+
+export async function getPosts(options?: Options): Promise<Post[]> {
     const url = BASE_URL + `/feeds/posts/default?start-index=${options?.start_index || 1}&max-results=${options?.max_results || 25}`;
 
     const response = await fetch(url);
@@ -40,7 +71,7 @@ export async function getFeed(options?: Options) {
 }
 
 
-export async function getAllPosts() {
+export async function getAllPosts(): Promise<Post[]> {
     let results = [];
     let index = 1;
     let searchSize = 150;
@@ -48,7 +79,7 @@ export async function getAllPosts() {
     let feed;
 
     do {
-        feed = await getFeed({ start_index: index, max_results: searchSize });
+        feed = await getPosts({ start_index: index, max_results: searchSize });
 
         results.push(...feed);
         index += feed.length
@@ -57,7 +88,7 @@ export async function getAllPosts() {
     return results;
 }
 
-export async function getPostImage(postName: string) {
+export async function getPostImage(postName: string): Promise<string | null> {
     const url = BASE_URL + `/search?q=${postName.replace(/\s/g, '+')}`;
     const response = await fetch(url);
     const htmlString = await response.text();
@@ -68,4 +99,4 @@ export async function getPostImage(postName: string) {
     return images.length > 0 ? images[0] : null;
 }
 
-export default { getFeed, getAllPosts, getPostImage }
+export default { getFeed: getPosts, getAllPosts, getPostImage, comparePosts }

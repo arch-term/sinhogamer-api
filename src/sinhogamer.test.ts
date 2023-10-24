@@ -36,4 +36,19 @@ describe("sinhogamer module", () => {
 
         expect(mods.length).toBeGreaterThan(2000)
     }, 60000)
+    it("Verify new updates on sinhogamer.com", async function () {
+        const feedPrecision = 25
+        let lastFeed
+        if (!fs.existsSync('cache/feed.json')) {
+            lastFeed = await sinhogamer.getFeed({ max_results: feedPrecision })
+            fs.writeFileSync('cache/feed.json', JSON.stringify(lastFeed, null, '\t'))
+        } else {
+            lastFeed = JSON.parse(fs.readFileSync('cache/feed.json', 'utf8'))
+        }
+
+        const newFeed = await sinhogamer.getFeed({ max_results: feedPrecision })
+        const { newPosts } = await sinhogamer.comparePosts(lastFeed, newFeed)
+
+        expect(newPosts.length).toBeGreaterThan(0)
+    })
 })

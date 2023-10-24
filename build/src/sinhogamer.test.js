@@ -53,4 +53,20 @@ describe("sinhogamer module", () => {
             expect(mods.length).toBeGreaterThan(2000);
         });
     }, 60000);
+    it("Verify new updates on sinhogamer.com", function () {
+        return __awaiter(this, void 0, void 0, function* () {
+            const feedPrecision = 25;
+            let lastFeed;
+            if (!fs_1.default.existsSync('cache/feed.json')) {
+                lastFeed = yield sinhogamer_1.default.getFeed({ max_results: feedPrecision });
+                fs_1.default.writeFileSync('cache/feed.json', JSON.stringify(lastFeed, null, '\t'));
+            }
+            else {
+                lastFeed = JSON.parse(fs_1.default.readFileSync('cache/feed.json', 'utf8'));
+            }
+            const newFeed = yield sinhogamer_1.default.getFeed({ max_results: feedPrecision });
+            const { newPosts } = yield sinhogamer_1.default.comparePosts(lastFeed, newFeed);
+            expect(newPosts.length).toBeGreaterThan(0);
+        });
+    });
 });

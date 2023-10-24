@@ -35,12 +35,31 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPostImage = exports.getAllPosts = exports.getFeed = void 0;
+exports.getPostImage = exports.getAllPosts = exports.getPosts = exports.comparePosts = void 0;
 const cheerio = __importStar(require("cheerio"));
 const rss_parser_1 = __importDefault(require("rss-parser"));
 const BASE_URL = `https://sinhogamer.com`;
 const parser = new rss_parser_1.default();
-function getFeed(options) {
+function comparePosts(last, current) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const newPosts = current.filter((post) => {
+            return !last.some((lastPost) => lastPost.link === post.link);
+        });
+        const deletedPosts = last.filter((post) => {
+            return !current.some((currentPost) => currentPost.link === post.link);
+        });
+        const updatedPosts = current.filter((post) => {
+            return last.some((lastPost) => lastPost.link === post.link && lastPost.publishDate !== post.publishDate);
+        });
+        return {
+            newPosts,
+            deletedPosts,
+            updatedPosts
+        };
+    });
+}
+exports.comparePosts = comparePosts;
+function getPosts(options) {
     return __awaiter(this, void 0, void 0, function* () {
         const url = BASE_URL + `/feeds/posts/default?start-index=${(options === null || options === void 0 ? void 0 : options.start_index) || 1}&max-results=${(options === null || options === void 0 ? void 0 : options.max_results) || 25}`;
         const response = yield fetch(url);
@@ -65,7 +84,7 @@ function getFeed(options) {
         });
     });
 }
-exports.getFeed = getFeed;
+exports.getPosts = getPosts;
 function getAllPosts() {
     return __awaiter(this, void 0, void 0, function* () {
         let results = [];
@@ -73,7 +92,7 @@ function getAllPosts() {
         let searchSize = 150;
         let feed;
         do {
-            feed = yield getFeed({ start_index: index, max_results: searchSize });
+            feed = yield getPosts({ start_index: index, max_results: searchSize });
             results.push(...feed);
             index += feed.length;
         } while (feed.length !== 0);
@@ -92,4 +111,4 @@ function getPostImage(postName) {
     });
 }
 exports.getPostImage = getPostImage;
-exports.default = { getFeed, getAllPosts, getPostImage };
+exports.default = { getFeed: getPosts, getAllPosts, getPostImage, comparePosts };
